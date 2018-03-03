@@ -68,15 +68,18 @@ model.add(Flatten())
 model.add(Dense(512, activation='relu', kernel_constraint=maxnorm(3)))
 model.add(Dropout(0.5))
 model.add(Dense(num_classes, activation='softmax'))
+
 # Compile model
-epochs = 25 # probably needs to be >250
+epochs = 25 # probably needs to be >250, ~8.6 mins per epoch on desktop
 lrate = 0.01
 decay = lrate/epochs
 sgd = SGD(lr=lrate, momentum=0.9, decay=decay, nesterov=False)
 model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
 print(model.summary())
+
 #
 # Fit the model
+
 model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=epochs, batch_size=32)
 # Final evaluation of the model
 scores = model.evaluate(X_test, y_test, verbose=0)
@@ -84,3 +87,51 @@ print("Accuracy: %.2f%%" % (scores[1]*100))
 
 t1 = time.time()
 total = t1-t0
+# %% Try out the network
+from PIL import Image
+import numpy
+
+filename = 'Bertu_box2.png'
+im = Image.open(filename)
+# im.show()# opens in windows picture viewer
+#pyplot.imshow(toimage(im)) # opens in console or Image.fromarray
+upscale_pic = numpy.array(im)
+upscale_pic = upscale_pic[:,:,0:3] # why four layers
+
+#int_list = range(10)
+#float_list = [float(i) for i in int_list]
+ 
+L = 18;
+list_32s = numpy.zeros(L)
+for i in range(L):
+    list_32s[i] = 32*(1+i)
+    
+# find multiple of 32 closest to but less than dimension of imported image
+targ = len(upscale_pic) # dimension of imported image
+list1 = list_32s-targ
+list1[list1 > 0] = 33
+
+index1 = numpy.unravel_index(numpy.argmin(abs(list1), axis=None), abs(list1).shape)
+index2 =  int(list_32s[index1])
+upscale_pic = upscale_pic[0:index2,0:index2] # crop to multiple of 32
+
+downscale_pic = numpy.ndarray([32,32,3])
+down_fact = int(index1[0]+1) # downscaling factor
+
+for i in range(32):
+    x_ind = range(i*down_fact,i*down_fact+down_fact)
+    for j in range (32):
+        y_ind = range(j*down_fact,j*down_fact+down_fact)
+        for k in range(3):
+            downscale_pic[i,j,k] = numpy.mean(upscale_pic[x_ind,y_ind,k])
+            
+pyplot.imshow(numpy.sum(downscale_pic,2))
+rs_dp =numpy.transpose(downscale_pic,(2,0,1))
+
+#%%
+x = numpy.ones((1, 2, 3))
+numpy.transpose(x, (1, 0, 2)).shape
+rs_dp =numpy.transpose(downscale_pic,(2,0,1))
+tst = numpy.sum(rs_dp,0)
+pyplot.imshow(tst)
+#%%

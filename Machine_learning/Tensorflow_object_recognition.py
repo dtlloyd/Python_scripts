@@ -4,7 +4,15 @@ Created on Sat Feb  3 09:52:17 2018
 
 @author: David Lloyd
 """
+# Script not working
+# network parameter defintion - fine
+# network training - fine
+# Falls over at line 100 with error:
+# ValueError: Error when checking : expected conv2d_1_input to have 4 
+#dimensions, but got array with shape (3, 32, 32)
+# something wrong with dimensionality of expected input
 
+#%%
 # Plot ad hoc CIFAR10 instances
 from keras.datasets import cifar10
 from matplotlib import pyplot
@@ -68,18 +76,15 @@ model.add(Flatten())
 model.add(Dense(512, activation='relu', kernel_constraint=maxnorm(3)))
 model.add(Dropout(0.5))
 model.add(Dense(num_classes, activation='softmax'))
-
 # Compile model
-epochs = 25 # probably needs to be >250, ~8.6 mins per epoch on desktop
+epochs = 2 # probably needs to be >250
 lrate = 0.01
 decay = lrate/epochs
 sgd = SGD(lr=lrate, momentum=0.9, decay=decay, nesterov=False)
 model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
 print(model.summary())
-
 #
 # Fit the model
-
 model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=epochs, batch_size=32)
 # Final evaluation of the model
 scores = model.evaluate(X_test, y_test, verbose=0)
@@ -87,9 +92,11 @@ print("Accuracy: %.2f%%" % (scores[1]*100))
 
 t1 = time.time()
 total = t1-t0
-# %% Try out the network
+
+#%%
 from PIL import Image
 import numpy
+from matplotlib import pyplot
 
 filename = 'Bertu_box2.png'
 im = Image.open(filename)
@@ -124,14 +131,31 @@ for i in range(32):
         y_ind = range(j*down_fact,j*down_fact+down_fact)
         for k in range(3):
             downscale_pic[i,j,k] = numpy.mean(upscale_pic[x_ind,y_ind,k])
-            
-pyplot.imshow(numpy.sum(downscale_pic,2))
-rs_dp =numpy.transpose(downscale_pic,(2,0,1))
 
+pyplot.imshow(numpy.sum(downscale_pic,2))
+downscale_pic =numpy.transpose(downscale_pic,(2,0,1))     
+#img = Image.fromarray(upscale_pic, 'RGB')
+#pyplot.imshow(toimage(img))
+#pyplot.imshow(numpy.sum(downscale_pic,2))
+
+#img_r = Image.fromarray(downscale_red, 'RGB')# something going wrong here.
+#pyplot.imshow(img_r)
 #%%
-x = numpy.ones((1, 2, 3))
-numpy.transpose(x, (1, 0, 2)).shape
-rs_dp =numpy.transpose(downscale_pic,(2,0,1))
-tst = numpy.sum(rs_dp,0)
-pyplot.imshow(tst)
-#%%
+model.predict(downscale_pic)
+# %%
+downscale_red = numpy.copy(downscale_pic)
+downscale_red[:,:,1] = 0            
+red_chan = numpy.copy(upscale_pic)
+red_chan[:,:,1] = 0
+red_chan[:,:,2] = 0
+red_img = Image.fromarray(red_chan, 'RGB')
+pyplot.imshow(toimage(red_img))
+
+downscale_red = numpy.ndarray([32,32,3])
+
+for i in range(32):
+    for j in range (32):
+        for k in range(3):
+            downscale_red[i,j,k] = red_chan[i,j,k]
+red_img_reduced = Image.fromarray(downscale_red, 'RGB')
+pyplot.imshow(toimage(red_img_reduced))

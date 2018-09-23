@@ -9,8 +9,8 @@ Created on Sat Feb  3 09:52:17 2018
 # network training - fine
 # Falls over at line 100 with error:
 # ValueError: Error when checking : expected conv2d_1_input to have 4 
-#dimensions, but got array with shape (3, 32, 32)
-# something wrong with dimensionality of expected input
+#dimensions, but input is array with shape (3, 32, 32)
+# preict command works if reshapen to size (1,3,32,32)
 
 #%%
 # Plot ad hoc CIFAR10 instances
@@ -77,7 +77,7 @@ model.add(Dense(512, activation='relu', kernel_constraint=maxnorm(3)))
 model.add(Dropout(0.5))
 model.add(Dense(num_classes, activation='softmax'))
 # Compile model
-epochs = 2 # probably needs to be >250
+epochs = 4 # probably needs to be >250; one epoch ~15 mins on laptop...
 lrate = 0.01
 decay = lrate/epochs
 sgd = SGD(lr=lrate, momentum=0.9, decay=decay, nesterov=False)
@@ -141,6 +141,8 @@ downscale_pic =numpy.transpose(downscale_pic,(2,0,1))
 #img_r = Image.fromarray(downscale_red, 'RGB')# something going wrong here.
 #pyplot.imshow(img_r)
 #%%
+# reshape to 1,3,32,32
+downscale_pic = numpy.reshape(downscale_pic,(1,3,32,32))
 model.predict(downscale_pic)
 # %%
 downscale_red = numpy.copy(downscale_pic)

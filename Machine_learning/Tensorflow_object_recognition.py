@@ -4,13 +4,12 @@ Created on Sat Feb  3 09:52:17 2018
 
 @author: David Lloyd
 """
-# Script not working
-# network parameter defintion - fine
-# network training - fine
-# Falls over at line 100 with error:
-# ValueError: Error when checking : expected conv2d_1_input to have 4 
-#dimensions, but input is array with shape (3, 32, 32)
-# preict command works if reshapen to size (1,3,32,32)
+# train an ANN using CIFAR10 data
+# classify picture of cat using the trained network
+# training takes ages. 4 epochs are not enouh
+# cifar10 classes
+# airplanes, cars, birds, cats, deer, dogs, frogs, horses, ships, and trucks
+# in that order
 
 #%%
 # Plot ad hoc CIFAR10 instances
@@ -43,6 +42,10 @@ from keras.layers.convolutional import MaxPooling2D
 from keras.utils import np_utils
 from keras import backend as K
 K.set_image_dim_ordering('th')
+
+#%% array of CIFAR10 classes
+CIFAR_classes = ["airplanes", "cars", "birds", "cats", "deer", "dogs",\
+                 "frogs", "horses", "ships", "trucks"];
 
 t0 = time.time()
 #
@@ -93,7 +96,7 @@ print("Accuracy: %.2f%%" % (scores[1]*100))
 t1 = time.time()
 total = t1-t0
 
-#%%
+#%% classify picture of a cat in a box with the trained network
 from PIL import Image
 import numpy
 from matplotlib import pyplot
@@ -142,9 +145,14 @@ downscale_pic =numpy.transpose(downscale_pic,(2,0,1))
 #pyplot.imshow(img_r)
 #%%
 # reshape to 1,3,32,32
+# output is a binary array (not probabilistic)
+# currently the cat in the box is a truck...
 downscale_pic = numpy.reshape(downscale_pic,(1,3,32,32))
-model.predict(downscale_pic)
-# %%
+B = model.predict(downscale_pic)
+Identified_category = CIFAR_classes[numpy.argmax(B)]; 
+
+# %% Extra bits manipulating image
+
 downscale_red = numpy.copy(downscale_pic)
 downscale_red[:,:,1] = 0            
 red_chan = numpy.copy(upscale_pic)
@@ -161,3 +169,6 @@ for i in range(32):
             downscale_red[i,j,k] = red_chan[i,j,k]
 red_img_reduced = Image.fromarray(downscale_red, 'RGB')
 pyplot.imshow(toimage(red_img_reduced))
+
+
+

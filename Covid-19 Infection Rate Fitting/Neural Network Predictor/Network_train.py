@@ -22,7 +22,7 @@ import csv
 np.random.seed(15)
 
 # length of "memory": from how many previous days to take data for input
-memory_length = 4
+memory_length = 5
 
 # load training data from .csv files
 # first list of n infection numbers
@@ -53,31 +53,34 @@ Y = np.asarray(Y[0],dtype = 'float')
 # with a few tweaks
 
 model = Sequential()
-model.add(Dense(12, input_dim=4, activation='relu')) # input_dim = #variables
+model.add(Dense(24, input_dim=memory_length, activation='relu')) # input_dim = #variables
 # Dense = fully connected, 12 = number of neurons in layer
+#model.add(Dense(16, activation='relu')) # 8 neurons
 model.add(Dense(8, activation='relu')) # 8 neurons
+
 model.add(Dense(1, activation='relu')) # signoid for 0<output<1 bounding
 
 # Compile model
-ADAM = optimizers.adam(lr=0.0002)
+ADAM = optimizers.adam(lr=0.00005)
 
 model.compile(loss='mean_squared_error', optimizer=ADAM, metrics=['mae'])
 
 # Fit the model (training) [Finding best weigths for prediction]
-model.fit(X, Y, epochs=150, batch_size=50)
+model.fit(X, Y, epochs=300, batch_size=50)
 
 scores = model.evaluate(X, Y) # (loss, metric)
-
+print(scores)
 #%% test
 
-print(model.predict(np.reshape((2626,3269,3983,5018),(1,memory_length))))
-print(model.predict(np.reshape((38,53,64,73),(1,memory_length))))
+#print(model.predict(np.reshape((2626,3269,3983,5018),(1,memory_length))))
+#print(model.predict(np.reshape((38,53,64,73),(1,memory_length))))
 
-print(np.shape(np.reshape((2626,3269,3983,5018),(1,memory_length))))
-print(np.shape(model.predict(np.reshape((2626,3269,3983,5018),(1,memory_length)))))
+#print(np.shape(np.reshape((2626,3269,3983,5018),(1,memory_length))))
+#print(np.shape(model.predict(np.reshape((2626,3269,3983,5018),(1,memory_length)))))
 #%% recursive generation
 
-initial_data = np.reshape((2626,3269,3983,5018),(1,memory_length))
+#initial_data = np.reshape((643.,714.,1035.,665.,967.),(1,memory_length))
+initial_data = np.reshape((15.,11.,9.,17.,17.),(1,memory_length))
 #initial_data =  np.reshape((38,53,64,73),(1,memory_length))
 
 next_set = np.copy(initial_data)
@@ -85,7 +88,7 @@ predictions = []
 for ii in range(0,60):
     next_day = model.predict(next_set)
     predictions.append(next_day[0])
-    next_set = np.append(next_set[0][1:4],next_day)
+    next_set = np.append(next_set[0][1:memory_length],next_day)
     next_set = np.reshape(next_set,(1,memory_length))
     
 import matplotlib.pyplot as plt

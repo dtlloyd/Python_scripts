@@ -1,5 +1,5 @@
 # Bulk downloading Sentinel 3 satellite data using Jupyter Notebooks, SentinelSat python library
-Included in this directory are example files for bulk downloading Sentinel 3 data, incuding an example JSON file for specifying a geographic region using a.json file.
+Included in this directory are example files for bulk downloading Sentinel 3 data, incuding an example JSON file for specifying the latitude and longitude coordinates of the vertices of a polygon corresponding to a geographic region using a.json file.
 ## S3 products tested so far:
 1. level 1 products (from Copernicus Scihub repository)
 2. Level 2 SST products (from EUMETSAT Coda repository)

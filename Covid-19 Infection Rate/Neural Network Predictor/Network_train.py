@@ -96,7 +96,7 @@ plt.xlabel('Epoch',fontsize = FS)
 plt.ylabel('Loss', fontsize = FS)
 plt.show()
 
-#%% test
+#%% test specic
 
 data_vec = (22141., 25150., 29474., 33718., 38168.)
 #data_vec = (139.,149., 151., 156., 169.)
@@ -123,6 +123,8 @@ plt.plot(np.arange(memory_length,extra_days+memory_length,1),np.asarray(predicti
 
 #%% compare performance to simple fit to benchmark mean absolute error
 # check types, shapes and source of warnings
+# fitting doesn't always work, so skip those testing instances, hence
+# resultant testing set is biased to succesful fitting cases only
 def simple_expo(x,a,b,c):
     
     return a * np.exp(-b * x) + c
@@ -148,9 +150,7 @@ for ii in range(0,len(Y_test)):
                                   p0 = (test_vec[0],\
                                         (test_vec[-1]-test_vec[0])/test_vec[-1],1), \
                                         maxfev = 4000)
-        
-        #plt.plot(xx,np.asarray(test_vec),'o') 
-        #plt.plot(xx,simple_expo(xx,*p_exp))
+    
         
         initial_data = np.reshape(test_vec,(1,memory_length))
         #initial_data = np.reshape((5683.,6650.,8077.,9529.,11658.),(1,memory_length,1))
@@ -162,13 +162,15 @@ for ii in range(0,len(Y_test)):
         MAE_NN.append(np.abs(plus_one-Y_test[test_ind]))
     except:
         pass
-print(np.mean(MAE_FIT))
-print(np.mean(MAE_NN))
-#data_vec = (139.,149., 151., 156., 169.)
+print('Expoential fit MAE: ' + str(np.mean(MAE_FIT)))
+print('Neural network MAE: ' + str(np.mean(MAE_NN)))
 
 #%%
-plt.plot(MAE_FIT,'x')
-plt.plot(np.reshape(MAE_NN,(len(MAE_NN),1)),'o')
+plt.plot(MAE_FIT,'x',label = 'Exponential fit')
+plt.plot(np.reshape(MAE_NN,(len(MAE_NN),1)),'o',label = 'Neural network')
 plt.yscale('log')
 plt.xlim(0,50)
 plt.ylim(1,1000)
+plt.ylabel('Mean absolute error')
+plt.xlabel('Testing instance')
+plt.legend()

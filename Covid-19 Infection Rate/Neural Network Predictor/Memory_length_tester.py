@@ -17,6 +17,7 @@ import csv
 import time
 
 #%%
+# change number of pervious days used as input, see if prediction of next day depends on the number of days used as input ("memory length")
 
 file_location =r"C:/Users/David Lloyd/Documents/Python_Scripts/Covid-19_predictor/"
 
@@ -80,7 +81,7 @@ for memory_length in memory_trials:
                 Y.append(Infections_row[jj+memory_length])           
     
     pairs = list(zip(X, Y))
-    pairs = random.sample(pairs, N_sample_size)  # pick 3 random pairs
+    pairs = random.sample(pairs, N_sample_size)  # pick N random pairs
     X_N, Y_N = zip(*pairs)
 
     X_N = np.asarray(X_N,dtype = 'float')
@@ -92,10 +93,10 @@ for memory_length in memory_trials:
     initializer = 'glorot_uniform'
     model = Sequential()
     model.add(Dense(32, input_dim=memory_length, activation='relu',kernel_initializer=initializer)) # input_dim = #variables
-    # Dense = fully connected, 12 = number of neurons in layer
+    # Dense = fully connected, 32 = number of neurons in layer
     #model.add(Dropout(0.0001))
     
-    model.add(Dense(16, activation='relu',kernel_initializer=initializer)) # 8 neurons
+    model.add(Dense(16, activation='relu',kernel_initializer=initializer)) # add extra layers (doesn't necessarily improve performance)
     #model.add(Dense(4, activation='linear')) # 8 neurons
     #model.add(Dense(2, activation='relu')) # 8 neurons
     

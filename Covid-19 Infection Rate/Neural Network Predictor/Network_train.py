@@ -21,6 +21,7 @@ from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 import csv
 import time
+
 #%%
 np.random.seed(15)
 # length of "memory": from how many previous days to take data for input
@@ -96,7 +97,7 @@ plt.xlabel('Epoch',fontsize = FS)
 plt.ylabel('Loss', fontsize = FS)
 plt.show()
 
-#%% test specic
+#%% test specific input data
 
 data_vec = (22141., 25150., 29474., 33718., 38168.)
 #data_vec = (139.,149., 151., 156., 169.)
@@ -104,22 +105,26 @@ initial_data = np.reshape(data_vec,(1,memory_length))
 #initial_data = np.reshape((5683.,6650.,8077.,9529.,11658.),(1,memory_length,1))
 plus_one = model.predict(initial_data)
 print(plus_one)
-#%% recursive generation
+#%% recursive generation of number of infections: start with days 1:N, predict N+1
+# then used 2:N+1 to predict N+2 and so on
 
 next_set = np.copy(initial_data)
 predictions = []
 extra_days = 14
 for ii in range(0,extra_days):
     next_day = model.predict(next_set)
+    #print(next_day)
     predictions.append(next_day[0])
     next_set = np.append(next_set[0][1:memory_length],next_day)
     next_set = np.reshape(next_set,(1,memory_length))
     
-import matplotlib.pyplot as plt
 
-plt.plot(np.arange(0,memory_length,1),data_vec,'x')
-plt.plot(np.arange(memory_length,extra_days+memory_length,1),np.asarray(predictions,dtype = 'float'))
-#plt.ylabel('Daily Infections')
+plt.plot(np.arange(0,memory_length,1),data_vec,'x',label = 'Input data')
+plt.plot(np.arange(memory_length,extra_days+memory_length,1),\
+         np.asarray(predictions,dtype = 'float'),'.',label = 'Recursive prediction')
+plt.legend()
+plt.ylabel('Daily Infections')
+plt.xlabel('Days')
 
 #%% compare performance to simple fit to benchmark mean absolute error
 # check types, shapes and source of warnings

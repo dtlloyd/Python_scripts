@@ -52,19 +52,17 @@ Y = np.asarray(Y[0],dtype = 'float')
 X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2)
 
 
-#%%
+#%% define network architecture
+
 # fix the seed to get repeatable results?
 np.random.seed(15)
 
 model = Sequential()
 initializer = 'glorot_uniform'
 model.add(Dense(32, input_dim=memory_length, activation='relu',kernel_initializer=initializer)) # input_dim = #variables
-# Dense = fully connected, 12 = number of neurons in layer
-#model.add(Dropout(0.00001))
+#model.add(Dropout(0.00001)) # doesn't help
 
-model.add(Dense(16, activation='relu',kernel_initializer=initializer)) # 8 neurons
-#model.add(Dense(4, activation='linear')) # 8 neurons
-#model.add(Dense(2, activation='relu')) # 8 neurons
+model.add(Dense(16, activation='relu',kernel_initializer=initializer)) # 16 neurons
 
 model.add(Dense(1, activation='relu',kernel_initializer=initializer))
 
@@ -85,7 +83,7 @@ scores = model.evaluate(X_test, Y_test) # (loss, metric) best - 43.08
 print(scores)
 print('Training time: ' + str(np.round(time.time()-begin)) + ' s')
 
-#%%
+#%% plot loss
 
 FS = 18
 fig = plt.figure()
@@ -127,9 +125,12 @@ plt.ylabel('Daily Infections')
 plt.xlabel('Days')
 
 #%% compare performance to simple fit to benchmark mean absolute error
+# use testing set
 # check types, shapes and source of warnings
 # fitting doesn't always work, so skip those testing instances, hence
 # resultant testing set is biased to succesful fitting cases only
+
+# simple unctions for comparison
 def simple_expo(x,a,b,c):
     
     return a * np.exp(-b * x) + c

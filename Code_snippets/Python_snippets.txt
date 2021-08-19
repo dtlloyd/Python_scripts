@@ -1,1 +1,92 @@
-Snippets go here.
+# timezone converter
+def good_timezone_converter(input_dt):
+    current_tz='UTC'
+    target_tz="Europe/Berlin"
+    current_tz = pytz.timezone(current_tz)
+    target_tz = pytz.timezone(target_tz)
+    target_dt = current_tz.localize(input_dt).astimezone(target_tz)
+    return target_tz.normalize(target_dt)
+    
+# Excel read
+xl_dict = pd.read_excel(excel_filename,\
+                        sheet_name = [2],engine='openpyxl')#, error_bad_lines=False) # third sheet has N2 data
+
+res = [val for key, val in xl_dict.items()]
+
+# cron and email
+
+# prepare mailing functions
+timezone = "Europe/Berlin"
+# Flask and Flask-Mail application setup
+app = Flask(__name__)
+mail = Mail(app)
+
+# MAIL SMTP details
+app.config['MAIL_SERVER'] = 'smtpapp1.kir.st.com'
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = False
+
+# calculates number of days between today and most recent date that data was added to the system
+def days_since_last_data():
+    raw_df_,processed_df_ = update_dataframes()
+    days_since = np.round((pd.to_datetime("now")-raw_df_.Date.max()).total_seconds()/(60*60*24),1)
+    return days_since
+
+ # function that is called by the email scheduler
+def data_warning_email(days_, mail_recipients):
+
+    today = pd.to_datetime("now").tz_localize(timezone)
+
+    # Formulate message subject
+    subject = "Missing Nitrogen Data " + str(today.date())
+
+    # Formulate message template
+    msg = Message(subject,
+                  sender=("Automated Gas Monitoring System",
+                          "bigdata@kirsx00061.kir.st.com"),
+                  recipients=mail_recipients)
+
+    # Formulate message text
+    body = """<p>Hi Miro,</p>
+<br>
+<p> Please note that it has been """ + str(days_) + """ days since the last nitrogen consumption data was recorded.</p>
+<br>
+<p> Please update the nitrogen consumption database as soon as possible.</p>
+<br>
+<p>For clarificiation, contact Big Data Group (z.markus-bernhard@st.com)</p>
+<br>
+<p>Thanks and Regards,</p>
+<p>Automated Gas Monitoring System</p>"""
+
+    msg.html = body
+    
+
+    with app.test_request_context('/'):
+        mail.send(msg)
+
+def missing_data_warning(path_, recipients):
+    # import number of days since data was last added
+    days_ = days_since_last_data()
+    
+    # only send an email if more than 3 days have elapsed since data was last added
+    # 3 days is better han 2 days, avoids sending an email every single weekend!
+    if days_>3: 
+        data_warning_email(days_, recipients)
+        
+empty_path = '' # scheduler prefers two arguemets for arg, even if only one needed, not sure why
+if __name__ == "__main__":
+      recipients_remind = [email_address]
+    # send warning for missing data
+    sched3 = BackgroundScheduler(daemon=True)
+    sched3.add_job(func=missing_data_warning,
+                    args=[empty_path, recipients_remind],
+                    trigger='cron',
+                    hour = 12)
+    sched3.start()
+    print("Wrapping up execution #3... ")
+    atexit.register(lambda: sched3.shutdown()) # Scheduler cleanup on program exit/stop
+    
+    
+    # To keep program running (otherwise will stop executing):
+    while True:
+        time.sleep(1)
